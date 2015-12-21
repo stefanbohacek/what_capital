@@ -7,6 +7,10 @@
 */
 var fs = require('fs'),
     path = require('path'),
+    express = require('express'),
+    http = require('http'),
+    app = express(),
+    server = http.Server(app),
     Twit = require('twit'),
 /*
   __dirname points to the current working directory. We only need to know the file's name and the folder we put it in ourselves.
@@ -175,3 +179,30 @@ public_stream.on('tweet', function (tweet) {
 */
 
 tweetRandomFlag();
+
+/*
+  A few things needed for our app to run on OpenShift.
+*/
+
+app.get('/', function (req, res) {
+
+//  res.sendFile(path.join(__dirname+'/views/index.html'));
+
+
+  res.sendfile(path.join(__dirname+'/views/index.html'), function (err) {
+    if (err) {
+      console.log(err);
+      res.status(err.status).end();
+    }
+    else {
+      console.log('Sent');
+    }
+  });
+});
+
+var server_port = process.env.OPENSHIFT_NODEJS_PORT || 8080
+var server_ip_address = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1'
+
+server.listen(server_port, server_ip_address, function(){
+  console.log("Listening on " + server_ip_address + ", server_port " + server_port)
+});
